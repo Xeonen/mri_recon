@@ -38,25 +38,28 @@ def dumbelXL():
     res04 = cl.resBlock(512, 3)(res03)
     
     
-    add01 = layers.Add()([sConv04, res04])
-    tConv01 = cl.convTransBlock(512, 3, 2)(add01)
-    conv09 = cl.convBlock(256, 3)(tConv01)
+
+    tConv01 = cl.convTransBlock(256, 3, 2)(res04)
+    add01 = layers.Add()([tConv01, conv08])
+    conv09 = cl.convBlock(256, 3)(add01)
     conv10 = cl.convBlock(256, 3)(conv09)
     
-    add02 = layers.Add()([conv08, conv10])
-    tConv02 = cl.convTransBlock(256, 3, 2)(conv10)
-    conv11 = cl.convBlock(128, 3)(tConv02)
+    tConv02 = cl.convTransBlock(128, 3, 2)(conv10)
+    add02 = layers.Add()([tConv02, conv06])
+    conv11 = cl.convBlock(128, 3)(add02)
     conv12 = cl.convBlock(128, 3)(conv11)
     
     
-    add03 = layers.Add()([conv06, conv12])
-    tConv03 = cl.convTransBlock(128, 3, 2)(add03)
-    conv13 = cl.convBlock(64, 3)(tConv03)
+
+    tConv03 = cl.convTransBlock(64, 3, 2)(conv12)
+    add03 = layers.Add()([tConv03, conv04])
+    conv13 = cl.convBlock(64, 3)(add03)
     conv14 = cl.convBlock(64, 3)(conv13)
     
-    add04 = layers.Add()([conv04, conv14])
-    tConv04 = cl.convTransBlock(64, 3, 2)(add04)
-    conv15 = cl.convBlock(32, 3)(tConv04)
+
+    tConv04 = cl.convTransBlock(32, 3, 2)(conv14)
+    add04 = layers.Add()([tConv04, conv02])
+    conv15 = cl.convBlock(32, 3)(add04)
     conv16 = cl.convBlock(32, 3)(conv15)
 
     synt = layers.Conv2D(2, 3, padding="same", use_bias=False)(conv16)

@@ -1,0 +1,85 @@
+# -*- coding: utf-8 -*-
+"""
+@author: Xeonen
+
+has one more upsampling and downsampling layer
+"""
+import customLayers as cl
+from tqdm import tqdm
+import tensorflow as tf
+from tensorflow.keras import layers, optimizers, models, activations
+
+def dumbelXL():
+
+    inL = layers.Input(shape=(256, 256, 2))
+    
+    conv01 = cl.convBlock(32, 3)(inL)
+    conv02 = cl.convBlock(32, 3)(conv01)
+    sConv01 = cl.convBlock(64, 3, 2)(conv02)
+    
+    conv03 = cl.convBlock(64, 3)(sConv01)
+    conv04 = cl.convBlock(64, 3)(conv03)
+    sConv02 = cl.convBlock(128, 3, 2)(conv04)
+    
+    conv05 = cl.convBlock(128, 3)(sConv02)
+    conv06 = cl.convBlock(128, 3)(conv05)
+    sConv03 = cl.convBlock(256, 3, 2)(conv06)
+    
+    conv07 = cl.convBlock(256, 3)(sConv03)
+    conv08 = cl.convBlock(256, 3)(conv07)
+    sConv04 = cl.convBlock(512, 3, 2)(conv08)
+    
+    
+    conv09 = cl.convBlock(512, 3)(sConv04)
+    conv10 = cl.convBlock(512, 3)(conv09)
+    sConv05 = cl.convBlock(1024, 3, 2)(conv10)
+
+
+
+    
+    res01 = cl.resBlock(1024, 3)(sConv05)
+    res02 = cl.resBlock(1024, 3)(res01)
+    res03 = cl.resBlock(1024, 3)(res02)
+    res04 = cl.resBlock(1024, 3)(res03)
+    
+
+    tConv01 = cl.convTransBlock(512, 3, 2)(res04)
+    add01 = layers.Add()([tConv01, conv10])
+    conv11 = cl.convBlock(512, 3)(add01)
+    conv12 = cl.convBlock(512, 3)(conv11)
+    
+
+    tConv02 = cl.convTransBlock(256, 3, 2)(conv12)
+    add02 = layers.Add()([tConv02, conv08])
+    conv13 = cl.convBlock(256, 3)(add02)
+    conv14 = cl.convBlock(256, 3)(conv13)
+    
+    tConv03 = cl.convTransBlock(128, 3, 2)(conv14)
+    add03 = layers.Add()([tConv03, conv06])
+    conv15 = cl.convBlock(128, 3)(add03)
+    conv16 = cl.convBlock(128, 3)(conv15)
+    
+    
+
+    tConv04 = cl.convTransBlock(64, 3, 2)(conv16)
+    add04 = layers.Add()([tConv04, conv04])
+    conv17 = cl.convBlock(64, 3)(add04)
+    conv18 = cl.convBlock(64, 3)(conv17)
+    
+
+    tConv05 = cl.convTransBlock(32, 3, 2)(conv18)
+    add05 = layers.Add()([tConv05, conv02])
+    conv19 = cl.convBlock(32, 3)(add05)
+    conv20 = cl.convBlock(32, 3)(conv19)
+
+    synt = layers.Conv2D(2, 3, padding="same", use_bias=False)(conv20)
+
+    
+    
+    model = models.Model(inputs=[inL], outputs=[synt])
+    
+    return(model)
+
+
+m = dumbelXL()
+print(m.summary())

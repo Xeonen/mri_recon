@@ -19,6 +19,8 @@ from tqdm import tqdm
 from tensorflow.keras import layers, models, losses
 import matplotlib.pyplot as plt
 
+
+
 dVal = dataOp.data_loader("C:/Datasets/MRI_Data/Recon_v4/Val", 8, 4, 10, False)
 dTrain = dataOp.data_loader("C:/Datasets/MRI_Data/Recon_v4/Train", 8, 4, 10, False)
 
@@ -33,7 +35,7 @@ mul = cl.mulBlock()([dIn, mIn])
 
 # Dumbell Image Domain
 ifft = cl.ifftBlock()(mul)
-dumbell = cl.dumbellS()(ifft)
+dumbell = cl.dumbellXL()(ifft)
 
 fft = cl.fftBlock()(dumbell)
 con = cl.conBlock()([mul, mIn, fft])
@@ -41,32 +43,15 @@ ifft = cl.ifftBlock()(con)
 
 
 # Dumbell Image Domain
-dumbell = cl.dumbellS()(ifft)
-fft = cl.fftBlock()(dumbell)
-con = cl.conBlock()([mul, mIn, fft])
-ifft = cl.ifftBlock()(con)
+dumbell = cl.dumbellXL()(ifft)
 
-# Dumbell Image Domain
-dumbell = cl.dumbellS()(ifft)
-fft = cl.fftBlock()(dumbell)
-con = cl.conBlock()([mul, mIn, fft])
-ifft = cl.ifftBlock()(con)
-
-# Dumbell Image Domain
-dumbell = cl.dumbellS()(ifft)
 fft = cl.fftBlock()(dumbell)
 con = cl.conBlock()([mul, mIn, fft])
 ifft = cl.ifftBlock()(con)
 
 
 # Dumbell Image Domain
-dumbell = cl.dumbellS()(ifft)
-fft = cl.fftBlock()(dumbell)
-con = cl.conBlock()([mul, mIn, fft])
-ifft = cl.ifftBlock()(con)
-
-# Dumbell Image Domain
-dumbell = cl.dumbellS()(ifft)
+dumbell = cl.dumbellXL()(ifft)
 fft = cl.fftBlock()(dumbell)
 con = cl.conBlock()([mul, mIn, fft])
 
@@ -78,12 +63,12 @@ ifft = cl.ifftBlock()(con)
 
 
 model = models.Model(inputs = [dIn, mIn], outputs = [ifft])
-model.compile(loss="MSE", optimizer="Adam")
+model.compile(loss="mse", optimizer="Adam")
 
 print(model.summary())
 
 
-################ Train with Phase
+############## Train with Phase
 ifftConv = hf.ifftModel()
 a = ifftConv(d[0])
 
@@ -116,8 +101,8 @@ for i in tqdm(range(20)):
         oldminLoss = minLoss
         minLoss = np.mean(vLoss)
         minEpoch = i
-        model.save("RCC_DC_Small_5x.h5")
-        print(f"Loss improved from {np.round(oldminLoss, 6)} to {np.round(minLoss, 6)} at {i}th epoch")
+        model.save("RCC_DumbellXL_4x_MSE.h5")
+        print(f"Loss improved from {np.round(oldminLoss, 6)} to {np.round(minLoss, 6)} at {i+1}th epoch")
                   
     trainList.append(np.mean(tLoss))
     valList.append(np.mean(vLoss))
@@ -125,7 +110,7 @@ for i in tqdm(range(20)):
 
 
 df = pd.DataFrame({"trainLoss": trainList, "valLoss": valList})
-df.to_csv("RCC_DC_Small_5x.csv", sep=",", header=True, encoding="UTF-8")
+df.to_csv("RCC_DumbellXL_4x_MSE.csv", sep=",", header=True, encoding="UTF-8")
 
 
 
@@ -147,3 +132,12 @@ plt.imshow(np.angle(out),cmap='gray')
 plt.title('Phase')
 plt.colorbar(orientation='horizontal',shrink=0.9)
 plt.show()
+
+
+y_pred = model.predict(d)
+
+y_true = ifftConv(d[0])
+
+loss = losses.MSE(y_true, y_pred)
+
+print(y_pred.shape, y_true.shape, loss.shape)

@@ -69,11 +69,12 @@ def image_gradient_loss(y_true, y_pred):
 
 
 custom_objects = {"mulBlock": cl.mulBlock, "ifftBlock": cl.ifftBlock,
-                  "dumbellS": cl.dumbellS, "fftBlock": cl.fftBlock,
-                  "conBlock": cl.conBlock, "resBlock": cl.resBlock
+                  "dumbellXL": cl.dumbellXL, "fftBlock": cl.fftBlock,
+                  "conBlock": cl.conBlock, "resBlock": cl.resBlock, "PSNR_loss": metrics.PSNR_loss,
+                  "image_gradient_loss": metrics.image_gradient_loss, "SSIM_loss": metrics.SSIM_loss
     }
 
-model = models.load_model("RCC_DC_Small_6x.h5", custom_objects=custom_objects)
+model = models.load_model("RCC_DumbellXL_2x_PSNR_v2.h5", custom_objects=custom_objects)
 
 dL = dataOp.data_loader("C:/Datasets/MRI_Data/Recon_v4/Val", 1, 4, 10, False)
 d = dL.__getitem__(200)
@@ -144,6 +145,16 @@ def calcMetrics(model, mType, mName):
     
     model_results.to_csv(f"{mName}.csv", sep=",", header=True, encoding="UTF-8")
     
-calcMetrics(model, "magnitude", "RCC_DC_Small_6x_Mag_Results")
-calcMetrics(model, "phase", "RCC_DC_Small_6x_Phase_Results")
+calcMetrics(model, "magnitude", "RCC_DumbellXL_2x_PSNR_v2_Mag_Results")
+calcMetrics(model, "phase", "RCC_DumbellXL_2x_PSNR_v2_Phase_Results")
 
+
+ifftConv = hf.ifftModel()
+y_pred = model.predict(d)
+
+y_true = ifftConv(d[0])
+
+loss = metrics.image_gradient_loss(y_true, y_pred)
+
+print(y_pred.shape, y_true.shape, loss.shape)
+print(tf.math.reduce_mean(loss))
